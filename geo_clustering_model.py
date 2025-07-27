@@ -212,14 +212,30 @@ def get_top_sellers(
             W_RATING   * cand["rating_norm"]        # Higher rating = higher score
         )
 
+        # Define the columns to return - ensure Email and Mobile are included
+        return_columns = ["Seller_ID", "Locality", "Name", "Distance_km", "Price_per_kg", "Rating", "Verified", "Score"]
+        
+        # Add Email and Mobile columns if they exist in the dataframe
+        if "Email" in cand.columns:
+            return_columns.append("Email")
+        if "Mobile" in cand.columns:
+            return_columns.append("Mobile")
+            
+        # Log available columns for debugging
+        logger.info(f"Available columns in candidate data: {list(cand.columns)}")
+        logger.info(f"Returning columns: {return_columns}")
+
         # Sort by score and return top N
         result = (
             cand.sort_values("Score", ascending=False)
                 .head(top_n)
-                .loc[:, ["Seller_ID", "Locality", "Name", "Distance_km",
-                         "Price_per_kg", "Rating", "Verified","Email","Mobile","Score"]]
+                .loc[:, return_columns]
                 .reset_index(drop=True)
         )
+        
+        # Log the first row to check if Email/Mobile are present
+        if len(result) > 0:
+            logger.info(f"Sample seller data: {dict(result.iloc[0])}")
         
         logger.info(f"✅ Found {len(result)} sellers for product: {product}")
         return result
