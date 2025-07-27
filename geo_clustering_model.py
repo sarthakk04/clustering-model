@@ -192,7 +192,7 @@ def get_top_sellers(
             if cand.empty:
                 logger.warning(f"⚠️ No sellers found for product: {product}")
                 return pd.DataFrame(columns=["Seller_ID", "Name", "Distance_km", "Price_per_kg",
-                                             "Rating", "Score"]).assign(Note="No seller found for this product")
+                                             "Rating", "Email", "Mobile", "Score"]).assign(Note="No seller found for this product")
 
         # Calculate distances
         cand["Distance_km"] = cand.apply(
