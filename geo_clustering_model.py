@@ -12,7 +12,7 @@ from db_manager import DatabaseManager
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(_name_)
 
 DATA_PATH   = Path("indian_sellers_dataset.csv")  
 MODEL_DIR   = Path("models")
@@ -38,7 +38,7 @@ def sync_data_from_mongodb():
             logger.info("✅ Data synced from MongoDB to CSV")
             return True
         else:
-            logger.warning("⚠️ No data found in MongoDB")
+            logger.warning("⚠ No data found in MongoDB")
             return False
             
     except Exception as e:
@@ -58,7 +58,7 @@ def train_and_save_model(auto_sync=True):
             logger.info("🔄 Syncing data from MongoDB...")
             sync_success = sync_data_from_mongodb()
             if not sync_success:
-                logger.warning("⚠️ MongoDB sync failed, using existing CSV data")
+                logger.warning("⚠ MongoDB sync failed, using existing CSV data")
         
         # Check if CSV file exists
         if not DATA_PATH.exists():
@@ -80,7 +80,7 @@ def train_and_save_model(auto_sync=True):
         
         # Handle any missing values
         if X.isnull().any().any():
-            logger.warning("⚠️ Found missing values in location data, dropping rows")
+            logger.warning("⚠ Found missing values in location data, dropping rows")
             df = df.dropna(subset=["Latitude", "Longitude"])
             X = df[["Latitude", "Longitude"]]
         
@@ -89,7 +89,7 @@ def train_and_save_model(auto_sync=True):
         actual_clusters = min(K_CLUSTERS, max(1, n_samples))  # At least 1, at most n_samples
         
         if actual_clusters != K_CLUSTERS:
-            logger.warning(f"⚠️ Adjusting clusters from {K_CLUSTERS} to {actual_clusters} due to limited data ({n_samples} samples)")
+            logger.warning(f"⚠ Adjusting clusters from {K_CLUSTERS} to {actual_clusters} due to limited data ({n_samples} samples)")
         
         # Scale features
         scaler = StandardScaler()
@@ -162,7 +162,7 @@ def get_top_sellers(
 
         # Check if Cluster column exists, if not, predict clusters
         if 'Cluster' not in full_df.columns:
-            logger.warning("⚠️ 'Cluster' column missing, predicting clusters for all data")
+            logger.warning("⚠ 'Cluster' column missing, predicting clusters for all data")
             X_all = full_df[["Latitude", "Longitude"]]
             X_all_scaled = scaler_model.transform(X_all)
             full_df['Cluster'] = kmeans_model.predict(X_all_scaled)
@@ -182,7 +182,7 @@ def get_top_sellers(
 
         # If no sellers in same cluster, expand search to nearby clusters
         if cand.empty:
-            logger.warning(f"⚠️ No sellers found in cluster {buyer_cluster}, expanding search...")
+            logger.warning(f"⚠ No sellers found in cluster {buyer_cluster}, expanding search...")
             # Find sellers for the product regardless of cluster
             cand = full_df[
                 (full_df["Product"].str.lower() == product.lower()) &
@@ -190,7 +190,7 @@ def get_top_sellers(
             ].copy()
             
             if cand.empty:
-                logger.warning(f"⚠️ No sellers found for product: {product}")
+                logger.warning(f"⚠ No sellers found for product: {product}")
                 return pd.DataFrame(columns=["Seller_ID", "Name", "Distance_km", "Price_per_kg",
                                              "Rating", "Score"]).assign(Note="No seller found for this product")
 
@@ -217,7 +217,7 @@ def get_top_sellers(
             cand.sort_values("Score", ascending=False)
                 .head(top_n)
                 .loc[:, ["Seller_ID", "Locality", "Name", "Distance_km",
-                         "Price_per_kg", "Rating", "Verified", "Score"]]
+                         "Price_per_kg", "Rating", "Verified","Email","Mobile","Score"]]
                 .reset_index(drop=True)
         )
         
@@ -254,7 +254,7 @@ def retrain_model_with_new_seller(seller_data):
         logger.error(f"❌ Error adding seller and retraining model: {str(e)}")
         raise e
 
-if __name__ == "__main__":
+if _name_ == "_main_":
     # Initial setup: upload CSV to MongoDB and train model
     print("🚀 Starting initial setup...")
     
